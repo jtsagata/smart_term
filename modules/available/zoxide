@@ -1,5 +1,12 @@
-#!/bin/bash
 # Description: zoxide is a smarter cd command
+
+# shellcheck shell=bash
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    echo "Hey, you should source this script, not execute it!"
+    exit 1
+fi
+
 
 # shellcheck disable=SC2220
 while getopts ":i" arg; do

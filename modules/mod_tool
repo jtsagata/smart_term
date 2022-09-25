@@ -1,5 +1,11 @@
 #!/bin/bash
-SCRIPT_DIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    echo "Hey, you should source this script, not execute it!"
+    exit 1
+fi
+
+
 declare -A HelpTexts
 
 function containsElement() {
@@ -10,8 +16,8 @@ function containsElement() {
 HelpTexts[enable]="Enable module <name>"
 function cmd_enable() {
     filename=$1
-    module="${SCRIPT_DIR}/available/${filename##*/}"
-    symlink="${SCRIPT_DIR}/enabled/${filename##*/}"
+    module="${AUTOMATION_DIR}/modules/available/${filename##*/}"
+    symlink="${AUTOMATION_DIR}/modules/enabled/${filename##*/}"
     if [ -e "${module}" ]; then
         printf "Symlinking %s ->%s\n" "${module}" "${symlink}"
         ln -sf "${module}" "${symlink}"
@@ -23,10 +29,10 @@ function cmd_enable() {
 HelpTexts[install]="Install and enable module <name>"
 function cmd_install() {
     filename=$1
-    module="${SCRIPT_DIR}/available/${filename##*/}"
+    module="${AUTOMATION_DIR}/modules//available/${filename##*/}"
     cmd_enable "$filename"
     chmod +x "${module}"
-    "${module}" -i
+    source "${module}" -i
 
 }
 
@@ -37,13 +43,13 @@ function cmd_clean() {
 HelpTexts[disable]="Dissable module <name>"
 function cmd_disable() {
     filename=$1
-    symlink="${SCRIPT_DIR}/enabled/${filename##*/}"
+    symlink="${AUTOMATION_DIR}/modules/enabled/${filename##*/}"
     rm "$symlink" || true
 }
 
 HelpTexts[enable]="Load enabled  modules"
 function cmd_load() {
-    for filename in "$SCRIPT_DIR"/enabled/*; do
+    for filename in "$AUTOMATION_DIR"/modules/enabled/*; do
         if [ -e "$filename" ]; then
             # shellcheck disable=SC1090
             source "$filename"    
@@ -58,10 +64,10 @@ function cmd_list() {
     declare -A FileStatus
 
     # Check files in available
-    for filename in "$SCRIPT_DIR"/available/*; do
+    for filename in "$AUTOMATION_DIR"/modules/available/*; do
         base_name="${filename##*/}"
-        module="${SCRIPT_DIR}/available/${filename##*/}"
-        symlink="${SCRIPT_DIR}/enabled/${filename##*/}"
+        module="${AUTOMATION_DIR}/modules/available/${filename##*/}"
+        symlink="${AUTOMATION_DIR}/modules/enabled/${filename##*/}"
         description=$(perl -lne 'print $1 if /# Description: (.*)/' "$filename")
 
         # Check if the simlink exists
@@ -91,7 +97,7 @@ function cmd_list() {
     done
 
     # Now check files that exists in enabled but not in available
-    for filename in "$SCRIPT_DIR"/enabled/*; do
+    for filename in "$AUTOMATION_DIR"/modules/enabled/*; do
         base_name="${filename##*/}"
         if ! containsElement "$base_name" "${FileNames[@]}"; then
             if [ -e "$filename" ]; then
@@ -126,14 +132,6 @@ function cmd_help() {
     rm "$tmpfile"
 }
 
-### Get the SHELL NAME
-if [ -n "$BASH" ]; then
-	export SHELL_NAME="bash"
-elif [ -n "$ZSH_NAME" ]; then
-	export SHELL_NAME="zsh"
-elif [ -n "$FISH_VERSION" ]; then
-	export SHELL_NAME="fish"
-fi
 
 ### Run the command
 command=${1-help}

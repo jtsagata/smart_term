@@ -1,5 +1,12 @@
-#!/bin/bash
 # Description: cross-shell prompt
+
+# shellcheck shell=bash
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    echo "Hey, you should source this script, not execute it!"
+    exit 1
+fi
+
 
 # shellcheck disable=SC2220
 while getopts ":i" arg; do
@@ -14,9 +21,7 @@ while getopts ":i" arg; do
         dconf write "/org/gnome/terminal/legacy/profiles:/:${profile_id}/font" "'$font'"
         # TODO: Download Nerd font
         mkdir -p ~/.config 
-        _SCRIPT_DIR="$(dirname "$(readlink -f "$BASH_SOURCE")")"
-        ln -sf "$_SCRIPT_DIR/../configs/starship.toml" ~/.config
-        unset _SCRIPT_DIR
+        ln -sf "$AUTOMATION_DIR/modules/configs/starship.toml" ~/.config
         ;;
     esac
 done

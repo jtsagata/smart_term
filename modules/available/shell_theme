@@ -1,6 +1,13 @@
-#!/bin/bash
 # Description: Themes for terminals
 # More info:   https://github.com/lemnos/theme.sh
+
+# shellcheck shell=bash
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    echo "Hey, you should source this script, not execute it!"
+    exit 1
+fi
+
 
 # shellcheck disable=SC2220
 while getopts ":i" arg; do
@@ -9,8 +16,7 @@ while getopts ":i" arg; do
             echo "Installing Theme.sh"
             # TODO: source common and use runst_install function
             sudo apt install fzf
-            mkdir -p "$HOME/.local/bin/"
-            _where="$HOME/.local/bin/shell_theme"
+            _where="$AUTOMATION_DIR/bin/shell_theme"
             curl  -s -Lo "${_where}" 'https://raw.githubusercontent.com/lemnos/theme.sh/master/bin/theme.sh' 
             chmod +x "${_where}"
             unset _where
@@ -19,7 +25,7 @@ while getopts ":i" arg; do
 done
 
 function load_last_theme() {
-    local cmd="$HOME/.local/bin/shell_theme"
+    local cmd="shell_theme"
     local theme
     theme=$($cmd -l|tail -n1)
     "$cmd" "$theme"
