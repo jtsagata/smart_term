@@ -1,0 +1,26 @@
+#!/bin/bash
+# Description: zoxide is a smarter cd command
+
+# shellcheck disable=SC2220
+while getopts ":i" arg; do
+    case ${arg} in
+    i)
+        echo "Installing zoxide"
+        # TODO: source common and use runst_install function
+        cargo install zoxide
+        sudo apt install fzf
+        ;;
+    esac
+done
+
+case "$SHELL_NAME" in
+bash)
+    eval "$(zoxide init bash)"
+    ;;
+zsh)
+    eval "$(zoxide init zsh)"
+    ;;
+fish)
+    zoxide init fish | source
+    ;;
+esac

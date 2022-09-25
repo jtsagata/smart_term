@@ -1,0 +1,147 @@
+#!/bin/bash
+SCRIPT_DIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
+declare -A HelpTexts
+
+function containsElement() {
+    for e in "${@:2}"; do [[ "$e" = "$1" ]] && return 0; done
+    return 1
+}
+
+HelpTexts[enable]="Enable module <name>"
+function cmd_enable() {
+    filename=$1
+    module="${SCRIPT_DIR}/available/${filename##*/}"
+    symlink="${SCRIPT_DIR}/enabled/${filename##*/}"
+    if [ -e "${module}" ]; then
+        printf "Symlinking %s ->%s\n" "${module}" "${symlink}"
+        ln -sf "${module}" "${symlink}"
+    else
+        printf "Error: module '%s' does not exists\n" "${module}"
+    fi
+}
+
+HelpTexts[install]="Install and enable module <name>"
+function cmd_install() {
+    filename=$1
+    module="${SCRIPT_DIR}/available/${filename##*/}"
+    cmd_enable "$filename"
+    chmod +x "${module}"
+    "${module}" -i
+
+}
+
+function cmd_clean() {
+    rm enabled/*
+}
+
+HelpTexts[disable]="Dissable module <name>"
+function cmd_disable() {
+    filename=$1
+    symlink="${SCRIPT_DIR}/enabled/${filename##*/}"
+    rm "$symlink" || true
+}
+
+HelpTexts[enable]="Load enabled  modules"
+function cmd_load() {
+    for filename in "$SCRIPT_DIR"/enabled/*; do
+        if [ -e "$filename" ]; then
+            # shellcheck disable=SC1090
+            source "$filename"    
+        fi
+    done
+}
+
+HelpTexts[list]="List all module statuses"
+function cmd_list() {
+    declare -a FileNames
+    declare -A FileDescriptions
+    declare -A FileStatus
+
+    # Check files in available
+    for filename in "$SCRIPT_DIR"/available/*; do
+        base_name="${filename##*/}"
+        module="${SCRIPT_DIR}/available/${filename##*/}"
+        symlink="${SCRIPT_DIR}/enabled/${filename##*/}"
+        description=$(perl -lne 'print $1 if /# Description: (.*)/' "$filename")
+
+        # Check if the simlink exists
+        if [ -L "${symlink}" ]; then
+            # Check if symlink is valid
+            if [ -e "${symlink}" ]; then
+                # Check if symlink actually points to module
+                if [ "$module" -ef "$symlink" ]; then
+                    status=$(pastel --color-mode=24bit paint Green "Enabled")
+                else
+                    status=$(pastel --color-mode=24bit paint Red "Bad link")
+                    description=$(readlink -f "$symlink")
+                    description=$(printf -- "-> %s" "$description")
+                fi
+            else
+                status=$(pastel --color-mode=24bit paint Red "Invalid link")
+                description=$(readlink -f "$symlink")
+                description=$(printf -- "-> %s" "$description")
+            fi
+        else
+            status="Dissabled"
+        fi
+
+        FileNames+=("$base_name")
+        FileDescriptions["$base_name"]=$description
+        FileStatus["$base_name"]="$status"
+    done
+
+    # Now check files that exists in enabled but not in available
+    for filename in "$SCRIPT_DIR"/enabled/*; do
+        base_name="${filename##*/}"
+        if ! containsElement "$base_name" "${FileNames[@]}"; then
+            if [ -e "$filename" ]; then
+                description=$(perl -lne 'print $1 if /# Description: (.*)/' "$filename")
+                FileStatus["$base_name"]=$(pastel --color-mode=24bit paint Yellow "No module")
+            else
+                FileStatus["$base_name"]=$(pastel --color-mode=24bit paint Red "Invalid link")
+                description=$(readlink -f "$symlink")
+                description=$(printf -- "-> %s" "$description")
+            fi
+            FileNames+=("$base_name")
+            FileDescriptions["$base_name"]=$description
+
+        fi
+    done
+
+    tmpfile=$(mktemp /tmp/mod_tool.XXXXXX)
+    for key in "${FileNames[@]}"; do
+        printf "@@%s@@%s@@%s@@\n" "${FileStatus["$key"]}" "$key" "${FileDescriptions["$key"]}" >>"$tmpfile"
+    done
+    column -t -s "@@" <"$tmpfile"
+    rm "$tmpfile"
+}
+
+function cmd_help() {
+    tmpfile=$(mktemp /tmp/mod_tool_help.XXXXXX)
+    echo "Usage:"
+    for key in "${!HelpTexts[@]}"; do
+        printf "   %s|%s\n" "$key:" "${HelpTexts[$key]}" >>"$tmpfile"
+    done
+    column -t -s "|" <"$tmpfile"
+    rm "$tmpfile"
+}
+
+### Get the SHELL NAME
+if [ -n "$BASH" ]; then
+	export SHELL_NAME="bash"
+elif [ -n "$ZSH_NAME" ]; then
+	export SHELL_NAME="zsh"
+elif [ -n "$FISH_VERSION" ]; then
+	export SHELL_NAME="fish"
+fi
+
+### Run the command
+command=${1-help}
+shift || true
+func=cmd_"${command}"
+if [ "$(type -t "$func")" == "function" ]; then
+    $func "$@"
+else
+    printf "Unknown command %s\n" "$command"
+    cmd_help
+fi

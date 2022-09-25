@@ -1,0 +1,29 @@
+#!/bin/bash
+# Description: Themes for terminals
+# More info:   https://github.com/lemnos/theme.sh
+
+# shellcheck disable=SC2220
+while getopts ":i" arg; do
+    case ${arg} in
+        i)
+            echo "Installing Theme.sh"
+            # TODO: source common and use runst_install function
+            sudo apt install fzf
+            mkdir -p "$HOME/.local/bin/"
+            _where="$HOME/.local/bin/shell_theme"
+            curl  -s -Lo "${_where}" 'https://raw.githubusercontent.com/lemnos/theme.sh/master/bin/theme.sh' 
+            chmod +x "${_where}"
+            unset _where
+            ;;
+    esac;
+done
+
+function load_last_theme() {
+    local cmd="$HOME/.local/bin/shell_theme"
+    local theme
+    theme=$($cmd -l|tail -n1)
+    "$cmd" "$theme"
+    export TERMINAL_THEME=$theme
+}
+
+load_last_theme

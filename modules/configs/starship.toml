@@ -1,0 +1,125 @@
+# Inserts a blank line between shell prompts
+add_newline = false
+continuation_prompt = "▶▶"
+
+format = """\
+  $cmd_duration\
+  $shell\
+  $status\
+  $sudo\
+  $c\
+  $directory\
+  $git_branch\
+  $git_commit\
+  $git_state\
+  $git_status\
+  $rust\
+  $haskell\
+  $character\
+"""
+
+# Replace the "❯" symbol in the prompt with "➜"
+[character] 
+success_symbol = "[❯](bold green)"
+error_symbol = "[✗](bold red) "
+
+[cmd_duration]
+min_time = 5_000
+
+[directory]
+truncation_length = 4
+truncation_symbol = "…/"
+home_symbol=" "
+repo_root_style="blue underline"
+style="blue"
+read_only = " "
+
+# One one Line
+[line_break]
+disabled = true
+
+[dotnet]
+disabled = true
+
+[status]
+disabled = false
+
+[sudo]
+disabled = false
+
+[shell]
+disabled = false
+bash_indicator = " "
+zsh_indicator = "🚀 "
+format="[$indicator](bold green)"
+style = "cyan bold"
+
+
+[aws]
+symbol = "  "
+
+[buf]
+symbol = " "
+
+[c]
+symbol = " "
+style = "bg:#86BBD8"
+format = '[ $symbol ($version) ]($style)'
+
+[conda]
+symbol = " "
+
+[dart]
+symbol = " "
+
+
+[docker_context]
+symbol = " "
+
+[elixir]
+symbol = " "
+
+[elm]
+symbol = " "
+
+[git_branch]
+symbol = " "
+
+[golang]
+symbol = " "
+
+[haskell]
+symbol = " "
+
+[hg_branch]
+symbol = " "
+
+[java]
+symbol = " "
+
+[julia]
+symbol = " "
+
+[memory_usage]
+symbol = " "
+
+[nim]
+symbol = " "
+
+[nix_shell]
+symbol = " "
+
+[nodejs]
+symbol = " "
+
+[package]
+symbol = " "
+
+[python]
+symbol = " "
+
+[spack]
+symbol = "🅢 "
+
+[rust]
+symbol = " "
