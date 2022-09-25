@@ -134,7 +134,7 @@ function cmd_help() {
 
 
 ### Run the command
-command=${1-help}
+command=${1}
 shift || true
 func=cmd_"${command}"
 if [ "$(type -t "$func")" == "function" ]; then

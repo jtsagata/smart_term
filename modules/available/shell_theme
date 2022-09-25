@@ -2,34 +2,60 @@
 # More info:   https://github.com/lemnos/theme.sh
 
 # shellcheck shell=bash
-if [ "${BASH_SOURCE[0]}" -ef "$0" ]
-then
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]; then
     echo "Hey, you should source this script, not execute it!"
     exit 1
 fi
 
-
 # shellcheck disable=SC2220
 while getopts ":i" arg; do
     case ${arg} in
-        i)
-            echo "Installing Theme.sh"
-            # TODO: source common and use runst_install function
-            sudo apt install fzf
-            _where="$AUTOMATION_DIR/bin/shell_theme"
-            curl  -s -Lo "${_where}" 'https://raw.githubusercontent.com/lemnos/theme.sh/master/bin/theme.sh' 
-            chmod +x "${_where}"
-            unset _where
-            ;;
-    esac;
+    i)
+        echo "Installing Theme.sh"
+        # TODO: source common and use runst_install function
+        sudo apt install fzf
+        ;;
+    esac
 done
 
-function load_last_theme() {
-    local cmd="shell_theme"
-    local theme
-    theme=$($cmd -l|tail -n1)
-    "$cmd" "$theme"
-    export TERMINAL_THEME=$theme
+function theme_pick() {
+    local type
+    local gnome_theme
+    local key
+    gnome_theme=$(dconf read /org/gnome/desktop/interface/gtk-theme | tr -d "'")
+    type="light"
+    if [[ "${gnome_theme}" =~ dark ]]; then
+        type="dark"
+    fi
+    selected=$(shell_theme "--${type}" -i)
+    key="${TERM_PROGRAM}-${SHELL_NAME}-${type}"
+    shell_db put ~/.config/shell_colors.db "$key" "$selected"
 }
 
-load_last_theme
+function theme_load() {
+    local type
+    local gnome_theme
+    local key
+    local theme
+    gnome_theme=$(dconf read /org/gnome/desktop/interface/gtk-theme | tr -d "'")
+    type="light"
+    if [[ "${gnome_theme}" =~ dark ]]; then
+        type="dark"
+    fi
+    key="${TERM_PROGRAM}-${SHELL_NAME}-${type}"
+    theme=$(shell_db get ~/.config/shell_colors.db "$key")
+
+    if [ -z "${theme}" ]; then
+        echo "No theme selected for your terminal. Run theme_pick."
+    else
+        shell_theme "$theme"
+    fi
+}
+
+# Change terminal color theme if theme is changed
+function blastoff() {
+    theme_load
+}
+
+# shellcheck disable=SC2034
+starship_precmd_user_func="blastoff"
