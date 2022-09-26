@@ -1,0 +1,14 @@
+# Description: Some common aliases
+
+# shellcheck shell=bash
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    echo "Hey, you should source this script, not execute it!"
+    exit 1
+fi
+
+alias ls='lsd'
+
+if [ "$TERM_PROGRAM" = "WezTerm" ]; then
+    alias neofetch='neofetch --iterm2 ~/.automation/modules/configs/pop_os.png' 
+fi

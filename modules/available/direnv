@@ -1,0 +1,21 @@
+# Description: Add support for .envrc
+
+# shellcheck shell=bash
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    echo "Hey, you should source this script, not execute it!"
+    exit 1
+fi
+
+
+case "$SHELL_NAME" in
+bash)
+    eval "$(direnv hook bash)"
+    ;;
+zsh)
+    eval "$(direnv hook zsh)"
+    ;;
+fish)
+    direnv hook fish | source
+    ;;
+esac

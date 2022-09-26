@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Quick fix for: https://github.com/r-darwish/topgrade/issues/716
+
+# Ask sudo early
+echo "Please give root password:"
+sudo echo
+
+INHIBIT_THEME_HIST=1 shell_theme heetch
+
+${HOME}/.cargo/bin/topgrade --yes --only flatpak 
+${HOME}/.cargo/bin/topgrade 
+
+shell_theme "$(shell_theme -l | tail -n1)"
+
+flatpak uninstall --unused

@@ -1,0 +1,3 @@
+disable = ["firmware", "flatpak"]
+cleanup = true
+assume_yes = true

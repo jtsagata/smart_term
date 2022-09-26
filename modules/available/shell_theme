@@ -32,6 +32,21 @@ function theme_pick() {
     shell_db put ~/.config/shell_colors.db "$key" "$selected"
 }
 
+function theme_set() {
+    local selected
+    local type
+    selected=$1
+    gnome_theme=$(dconf read /org/gnome/desktop/interface/gtk-theme | tr -d "'")
+    type="light"
+    if [[ "${gnome_theme}" =~ dark ]]; then
+        type="dark"
+    fi
+
+    key="${TERM_PROGRAM}-${SHELL_NAME}-${type}"
+    shell_db put ~/.config/shell_colors.db "$key" "$selected"
+    shell_theme "$selected"
+}
+
 function theme_load() {
     local type
     local gnome_theme
@@ -50,6 +65,14 @@ function theme_load() {
     else
         shell_theme "$theme"
     fi
+}
+
+function theme_info(){
+    local theme
+    local theme_name
+    theme_name="$(shell_theme -l|tail -n1)"
+    theme=$(dconf read /org/gnome/desktop/interface/gtk-theme | tr -d "'")
+    echo "Terminal: '${TERM_PROGRAM}' running '${SHELL_NAME}' with theme '${theme_name}'"
 }
 
 # Change terminal color theme if theme is changed
