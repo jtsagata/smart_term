@@ -55,7 +55,47 @@ function theme_load() {
 # Change terminal color theme if theme is changed
 function blastoff() {
     theme_load
+    # Set Window title
+    echo -ne "\033]0; $(basename "$PWD") \007"
 }
 
-# shellcheck disable=SC2034
-starship_precmd_user_func="blastoff"
+case "$SHELL_NAME" in
+bash)
+    # shellcheck disable=SC2034
+    starship_precmd_user_func="blastoff"
+    ;;
+zsh)
+    precmd_functions+=(blastoff)
+    ;;
+esac
+
+# Red allert on su
+function su() {
+    (
+        INHIBIT_THEME_HIST=1 shell_theme red-alert
+        trap 'shell_theme "$(shell_theme -l|tail -n1)"' INT
+        env su "$@"
+        shell_theme "$(shell_theme -l | tail -n1)"
+    )
+}
+
+# Red allert on sudo
+function sudo() {
+    (
+        pid=$(exec sh -c 'echo "$PPID"')
+
+        # If the command takes less than .2s, don't change the theme.
+        # We could also just match on 'su' and ignore everything else,
+        # but this also accomodates other long running commands
+        # like 'sudo sleep 5s'. Modify to taste.
+
+        (
+            sleep .2s
+            ps -p "$pid" >/dev/null && INHIBIT_THEME_HIST=1 shell_theme red-alert
+        ) &
+
+        trap 'shell_theme "$(shell_theme -l|tail -n1)"' INT
+        env sudo "$@"
+        shell_theme "$(shell_theme -l | tail -n1)"
+    )
+}

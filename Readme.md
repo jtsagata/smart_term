@@ -9,5 +9,5 @@ source ~/.automation/automation.sh load
 ```
  Run 
  ``` bash
- ~/.automation/automation.sh install
+ ~/.automation/automation.zsh
  ```

@@ -1,5 +1,6 @@
-# shellcheck shell=bash
-AUTOMATION_DIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
+# shellcheck shell=sh
+AUTOMATION_DIR=${0:a:h}
+
 
 # Add the following lines to .bashrc
 # # shellcheck source=/dev/null
@@ -37,29 +38,10 @@ if [ -z "${TERM_PROGRAM}" ]; then
     fi
 fi
 
-# All the action is here
-function cmd_load() {
-    # shellcheck source=/dev/null
-    source "${AUTOMATION_DIR}/modules/mod_tool" load
-}
-
-function cmd_modules() {
-    # shellcheck source=/dev/null
-    source "${AUTOMATION_DIR}/modules/mod_tool" "$@"
-}
-
-function cmd_install() {
-    curl -s -Lo "$AUTOMATION_DIR/bin/shell_theme" 'https://raw.githubusercontent.com/lemnos/theme.sh/master/bin/theme.sh'
-    chmpod +x "$AUTOMATION_DIR/bin/shell_theme" 
-    curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
-}
-
-command=$1
-shift || true
-func=cmd_"${command}"
-if [ "$(type -t "$func")" == "function" ]; then
-    $func "$@"
-fi
-
-# This is sourced, so remove garbage
-unset AUTOMATION_DIR cmd_load
+# Load modules
+for filename in "$AUTOMATION_DIR"/modules/enabled/*; do
+    if [ -e "$filename" ]; then
+        # shellcheck disable=SC1090
+        source "$filename"
+    fi
+done
