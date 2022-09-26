@@ -1,12 +1,13 @@
-#!/bin/bash
-if [ "${BASH_SOURCE[0]}" -ef "$0" ]
-then
-    echo "Hey, you should source this script, not execute it!"
-    exit 1
-fi
-
+#!/usr/bin/bash
+AUTOMATION_DIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
 
 declare -A HelpTexts
+
+function cmd_install() {
+    curl -s -Lo "$AUTOMATION_DIR/bin/shell_theme" 'https://raw.githubusercontent.com/lemnos/theme.sh/master/bin/theme.sh'
+    chmpod +x "$AUTOMATION_DIR/bin/shell_theme"
+    curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
+}
 
 function containsElement() {
     for e in "${@:2}"; do [[ "$e" = "$1" ]] && return 0; done
@@ -26,23 +27,33 @@ function cmd_enable() {
     fi
 }
 
-function cmd_clean() {
-    rm enabled/*
+
+HelpTexts[disable_all]="Disable all modules"
+function cmd_disable_all() {
+    rm "${AUTOMATION_DIR}/modules/enabled/*"
 }
 
-HelpTexts[disable]="Dissable module <name>"
+HelpTexts[enable_all]="Enable all modules"
+function cmd_enable_all() {
+    for filename in "$AUTOMATION_DIR"/modules/available/*; do
+        base_name="${filename##*/}"
+        cmd_enable "${base_name}"
+    done
+}
+
+HelpTexts[disable]="Disable module <name>"
 function cmd_disable() {
     filename=$1
     symlink="${AUTOMATION_DIR}/modules/enabled/${filename##*/}"
     rm "$symlink" || true
 }
 
-HelpTexts[enable]="Load enabled  modules"
-function cmd_load() {
+HelpTexts[reload]="ReLoad enabled  modules"
+function cmd_reload() {
     for filename in "$AUTOMATION_DIR"/modules/enabled/*; do
         if [ -e "$filename" ]; then
             # shellcheck disable=SC1090
-            source "$filename"    
+            source "$filename"
         fi
     done
 }
@@ -122,14 +133,14 @@ function cmd_help() {
     rm "$tmpfile"
 }
 
-
-### Run the command
-command=${1}
+command=$1
 shift || true
+if [ "$command" = "--help" ]; then
+    command="help"
+fi
 func=cmd_"${command}"
 if [ "$(type -t "$func")" == "function" ]; then
     $func "$@"
-else
-    printf "Unknown command %s\n" "$command"
+else 
     cmd_help
 fi

@@ -7,6 +7,10 @@ then
     exit 1
 fi
 
+if [ ! "$(command -v direnv)" ]; then
+    echo "Command direnv missing"
+    sudo apt install direnv
+fi
 
 case "$SHELL_NAME" in
 bash)

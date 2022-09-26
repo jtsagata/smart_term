@@ -11,4 +11,4 @@ zplug "conda-incubator/conda-zsh-completion"
 zplug "chrissicool/zsh-256color"
 zplug load
 
-source ~/.automation/automation.zsh
+source ~/.automation/smart_term/loader

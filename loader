@@ -1,0 +1,53 @@
+# shellcheck shell=sh
+# This must be valid for BASH and ZSH
+
+### Get the SHELL NAME
+if [ -n "$BASH" ]; then
+    export SHELL_NAME="bash"
+    # shellcheck disable=SC3028
+    # shellcheck disable=SC2128
+    AUTOMATION_DIR=$(dirname "$(readlink -f "$BASH_SOURCE")")
+elif [ -n "$ZSH_NAME" ]; then
+    export SHELL_NAME="zsh"
+    # shellcheck disable=SC3057
+    AUTOMATION_DIR=${0:a:h}
+elif [ -n "$FISH_VERSION" ]; then
+    # FISH IS NOT SUPPORTED YET
+    export SHELL_NAME="fish"
+fi
+
+### Export TERM_PROGRAM
+if [ -z "${TERM_PROGRAM}" ]; then
+    if [ "${TERMINAL_EMULATOR}" = "JetBrains-JediTerm" ]; then
+        export TERM_PROGRAM="JetBrains"
+    elif [ -n "$INSIDE_NAUTILUS_PYTHON" ]; then
+        export TERM_PROGRAM="nautilus"
+    else
+        export TERM_PROGRAM="gnome"
+    fi
+fi
+
+
+path_add() {
+    if ! echo "$PATH" | /bin/grep -Eq "(^|:)$1($|:)"; then
+        if [ "$2" = "after" ]; then
+            PATH="$PATH:$1"
+        else
+            PATH="$1:$PATH"
+        fi
+    fi
+}
+
+path_add "${AUTOMATION_DIR}/bin"
+
+
+# Load modules
+debug=/usr/bin/false
+$debug && echo "Loading modules from $AUTOMATION_DIR/modules/enabled/"
+for filename in "$AUTOMATION_DIR"/modules/enabled/*; do
+    if [ -e "$filename" ]; then
+        $debug && echo "  Loading $filename ..."
+        # shellcheck disable=SC1090
+        . "$filename"
+    fi
+done

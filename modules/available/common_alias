@@ -7,6 +7,13 @@ then
     exit 1
 fi
 
+if [ ! -d "$HOME"/.cargo ]; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+fi
+
+if [ ! "$(command -v lsd)" ]; then
+    cargo install lsd
+fi
 alias ls='lsd'
 
 if [ "$TERM_PROGRAM" = "WezTerm" ]; then
@@ -15,6 +22,6 @@ fi
 
 function bake_script() {
     local script=${1-new_tool}
-    cp ~/.automation/modules/templates/bash.tmpl "$script"
+    cp "${AUTOMATION_DIR}"/modules/templates/bash.tmpl "$script"
     chmod +x "$script"
 }

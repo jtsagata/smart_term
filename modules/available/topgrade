@@ -1,0 +1,22 @@
+# Description: The absolute system updater
+
+# shellcheck shell=bash
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]
+then
+    echo "Hey, you should source this script, not execute it!"
+    exit 1
+fi
+
+if [ ! -d "$HOME"/.cargo ]; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+fi
+
+
+if [ ! "$(command -v topgrade)" ]; then
+    cargo install topgrade
+fi
+
+if [ ! -e ~/.config/topgrade.toml ]; then
+    mkdir -p ~/.config
+    ln -sf "$AUTOMATION_DIR/modules/configs/topgrade.toml" ~/.config
+fi

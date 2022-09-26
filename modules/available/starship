@@ -1,30 +1,28 @@
 # Description: cross-shell prompt
 
 # shellcheck shell=bash
-if [ "${BASH_SOURCE[0]}" -ef "$0" ]
-then
+if [ "${BASH_SOURCE[0]}" -ef "$0" ]; then
     echo "Hey, you should source this script, not execute it!"
     exit 1
 fi
 
+if [ ! -d "$HOME"/.cargo ]; then
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+fi
 
-# shellcheck disable=SC2220
-while getopts ":i" arg; do
-    case ${arg} in
-    i)
-        echo "Installing zoxide"
-        # TODO: source common and use runst_install function
-        cargo install starship
-        # Use dconf to set font
-        profile_id=$( eval "gsettings get org.gnome.Terminal.ProfilesList default" | tr -d "'")
-        font="Hack NF 12"
-        dconf write "/org/gnome/terminal/legacy/profiles:/:${profile_id}/font" "'$font'"
-        # TODO: Download Nerd font
-        mkdir -p ~/.config 
-        ln -sf "$AUTOMATION_DIR/modules/configs/starship.toml" ~/.config
-        ;;
-    esac
-done
+
+if [ ! "$(command -v starship)" ]; then
+    cargo install starship
+fi
+
+if [ ! -e ~/.config/starship.toml ]; then
+    mkdir -p ~/.config
+    ln -sf "$AUTOMATION_DIR/modules/configs/starship.toml" ~/.config
+    echo "Setting terminal font..."
+    profile_id=$(eval "gsettings get org.gnome.Terminal.ProfilesList default" | tr -d "'")
+    font="Hack NF 12"
+    dconf write "/org/gnome/terminal/legacy/profiles:/:${profile_id}/font" "'$font'"
+fi
 
 case "$SHELL_NAME" in
 bash)
