@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+script_dir=$(dirname "$(readlink -f "$BASH_SOURCE")")
+set -Eeuo pipefail
+
+function cleanup() {
+    # Clean up logic, remove temp files etc..
+    echo ""
+}
+
+trap cleanup EXIT
+trap cleanup SIGINT
+
+
+# Run something important, no Ctrl-C allowed.
+trap "" SIGINT
+important_command
+
+# Less important stuff from here on out, Ctrl-C allowed.
+trap - SIGINT
+not_so_important_command

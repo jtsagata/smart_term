@@ -12,3 +12,9 @@ alias ls='lsd'
 if [ "$TERM_PROGRAM" = "WezTerm" ]; then
     alias neofetch='neofetch --iterm2 ~/.automation/modules/configs/pop_os.png' 
 fi
+
+function bake_script() {
+    local script=${1-new_tool}
+    cp ~/.automation/modules/templates/bash.tmpl "$script"
+    chmod +x "$script"
+}
